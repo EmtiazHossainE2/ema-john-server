@@ -25,11 +25,29 @@ async function run() {
 
         //8
         app.get('/product', async (req, res) => {
+            console.log('query', req.query);
+            const page = parseInt(req.query.page)
+            const pageProduct = parseInt(req.query.pageProduct)
             const query = {}
             const cursor = productCollection.find(query)
-            const products =await cursor.toArray()
+            let products;
+            if (page || pageProduct) {
+                products = await cursor.skip(page*pageProduct).limit(pageProduct).toArray()
+            }
+            else {
+                products = await cursor.toArray()
+            }
             res.send(products)
         })
+
+        //13 count 
+        app.get('/productCollection', async (req, res) => {
+            const count = await productCollection.estimatedDocumentCount()
+            res.send({ count })
+        })
+
+
+
     }
     finally {
 
