@@ -1,7 +1,7 @@
 //1
 const express = require('express');
 const app = express()
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000
 
 //3 
@@ -32,6 +32,10 @@ async function run() {
             const cursor = productCollection.find(query)
             let products;
             if (page || pageProduct) {
+                // 0 --> skip: 0 get: 0-10(10): 
+                // 1 --> skip: 1*10 get: 11-20(10):
+                // 2 --> skip: 2*10 get: 21-30 (10):
+                // 3 --> skip: 3*10 get: 21-30 (10):
                 products = await cursor.skip(page*pageProduct).limit(pageProduct).toArray()
             }
             else {
@@ -46,7 +50,16 @@ async function run() {
             res.send({ count })
         })
 
-
+        // 14 use post to get products by ids
+        app.post('/productsByKeys' , async(req,res) =>{
+            const keys = req.body 
+            const ids = keys.map(id => ObjectId(id))
+            const query = {_id : {$in : ids}}
+            const cursor = productCollection.find(query)
+            const products = await cursor.toArray()
+            console.log(keys);
+            res.send(products)
+        })
 
     }
     finally {
